@@ -5,7 +5,7 @@ import httpx
 import pytest
 
 from driftguard.fetch.fetcher import HttpFetcher
-from driftguard.models.support import Checkpoint, Source
+from driftguard.models.support import Checkpoint, Politeness, Source
 
 
 class FakeClock:
@@ -29,48 +29,45 @@ class FakeSleep:
         self.clock.advance(secs)
 
 
-@pytest.fixture
-def base_registry():
-    return {
-        "acme": {
-            "url": "https://api.acme.com/data",
-            "politeness": {"min_interval_seconds": 1.0},
-            "user_agent": "TestBot",
-        }
-    }
+def make_source(id="acme", url="https://api.acme.com/data", min_int=1.0, ua="TestBot"):
+    return Source(
+        id=id,
+        vendor="acme",
+        type="html",
+        url=url,
+        cadence="",
+        parser_hints={},
+        politeness=Politeness(min_interval_seconds=min_int, user_agent=ua),
+    )
 
 
-def test_304_yields_zero_docs(base_registry):
+def test_304_yields_zero_docs():
     def handle(req):
         if req.headers.get("If-None-Match") == "v1":
             return httpx.Response(304)
         return httpx.Response(404)
 
     client = httpx.Client(transport=httpx.MockTransport(handle))
-    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), base_registry, client=client)
-    docs, _cp = f.fetch(
-        Source(id="acme"), Checkpoint(cursor=json.dumps({"etag": "v1"}))
-    )
+    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), client=client)
+    docs, _cp = f.fetch(make_source(), Checkpoint(cursor=json.dumps({"etag": "v1"})))
     assert len(docs) == 0
 
 
-def test_ETag_sent_on_second_call(base_registry):
+def test_ETag_sent_on_second_call():
     def handle(req):
         if req.headers.get("If-None-Match") == "v1":
             return httpx.Response(304)
         return httpx.Response(200, text="body", headers={"ETag": "v1"})
 
     client = httpx.Client(transport=httpx.MockTransport(handle))
-    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), base_registry, client=client)
-
-    docs1, cp1 = f.fetch(Source(id="acme"))
+    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), client=client)
+    docs1, cp1 = f.fetch(make_source())
     assert len(docs1) == 1
-
-    docs2, _cp2 = f.fetch(Source(id="acme"), cp1)
+    docs2, _cp2 = f.fetch(make_source(), cp1)
     assert len(docs2) == 0
 
 
-def test_Last_Modified_sent(base_registry):
+def test_Last_Modified_sent():
     def handle(req):
         if req.headers.get("If-Modified-Since") == "Wed, 21 Oct 2015 07:28:00 GMT":
             return httpx.Response(304)
@@ -79,14 +76,13 @@ def test_Last_Modified_sent(base_registry):
         )
 
     client = httpx.Client(transport=httpx.MockTransport(handle))
-    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), base_registry, client=client)
-
-    _docs1, cp1 = f.fetch(Source(id="acme"))
-    docs2, _cp2 = f.fetch(Source(id="acme"), cp1)
+    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), client=client)
+    _docs1, cp1 = f.fetch(make_source())
+    docs2, _cp2 = f.fetch(make_source(), cp1)
     assert len(docs2) == 0
 
 
-def test_changed_body_yields_a_doc(base_registry):
+def test_changed_body_yields_a_doc():
     state = {"v": 1}
 
     def handle(req):
@@ -96,177 +92,164 @@ def test_changed_body_yields_a_doc(base_registry):
         return httpx.Response(200, text="B", headers={"ETag": "B"})
 
     client = httpx.Client(transport=httpx.MockTransport(handle))
-    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), base_registry, client=client)
-
-    _, cp = f.fetch(Source(id="acme"))
-    docs, _cp2 = f.fetch(Source(id="acme"), cp)
+    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), client=client)
+    _, cp = f.fetch(make_source())
+    docs, _cp2 = f.fetch(make_source(), cp)
     assert len(docs) == 1
     assert docs[0].text == "B"
 
 
-def test_robots_disallow_skips(base_registry):
+def test_robots_disallow_skips():
     def handle(req):
         if req.url.path == "/robots.txt":
             return httpx.Response(200, text="User-agent: *\nDisallow: /\n")
         return httpx.Response(200, text="body")
 
     client = httpx.Client(transport=httpx.MockTransport(handle))
-    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), base_registry, client=client)
-
+    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), client=client)
     with pytest.raises(ValueError, match="robots disallow skips"):
-        f.fetch(Source(id="acme"))
+        f.fetch(make_source())
 
 
-def test_min_interval_enforced_with_fake_clock(base_registry):
+def test_min_interval_enforced_with_fake_clock():
     def handle(req):
         return httpx.Response(200, text="x")
 
     client = httpx.Client(transport=httpx.MockTransport(handle))
-
-    clock = FakeClock()
-    sleep = FakeSleep(clock)
-    f = HttpFetcher(clock, sleep, base_registry, client=client)
-
-    f.fetch(Source(id="acme"))
+    clock, sleep = FakeClock(), FakeSleep(FakeClock())
+    f = HttpFetcher(clock, sleep, client=client)
+    f.fetch(make_source())
     assert sleep.slept == 0
-    f.fetch(Source(id="acme"))
+    f.fetch(make_source())
     assert sleep.slept >= 1.0
 
 
-def test_429_Retry_After_honoured(base_registry):
+def test_429_Retry_After_honoured():
     state = {"calls": 0}
 
     def handle(req):
         if req.url.path == "/robots.txt":
             return httpx.Response(404)
-
         state["calls"] += 1
         if state["calls"] == 1:
             return httpx.Response(429, headers={"Retry-After": "2"})
         return httpx.Response(200, text="ok")
 
     client = httpx.Client(transport=httpx.MockTransport(handle))
-    clock = FakeClock()
-    sleep = FakeSleep(clock)
-    f = HttpFetcher(clock, sleep, base_registry, client=client)
-    f.fetch(Source(id="acme"))
+    clock, sleep = FakeClock(), FakeSleep(FakeClock())
+    f = HttpFetcher(clock, sleep, client=client)
+    f.fetch(make_source())
     assert sleep.slept == 2.0
 
 
-def test_503_retries_then_fails_closed(base_registry):
+def test_503_retries_then_fails_closed():
     def handle(req):
         return httpx.Response(503)
 
     client = httpx.Client(transport=httpx.MockTransport(handle))
-    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), base_registry, client=client)
+    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), client=client)
     with pytest.raises(ValueError, match="503 retries then fails closed"):
-        f.fetch(Source(id="acme"))
+        f.fetch(make_source())
 
 
-def test_timeout_present_on_every_request(base_registry):
+def test_timeout_present_on_every_request():
     def handle(req):
         assert req.extensions.get("timeout") is not None
         return httpx.Response(200, text="ok")
 
     client = httpx.Client(transport=httpx.MockTransport(handle))
-    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), base_registry, client=client)
-    f.fetch(Source(id="acme"))
+    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), client=client)
+    f.fetch(make_source())
 
 
 def test_file_url_rejected_when_allow_file_False(tmp_path):
     p = tmp_path / "x.txt"
     p.write_text("hello", encoding="utf-8")
-    reg = {
-        "loc": {
-            "url": p.as_uri(),
-            "politeness": {"min_interval_seconds": 1},
-            "user_agent": "x",
-        }
-    }
-    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), reg, allow_file=False)
+    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), allow_file=False)
     with pytest.raises(ValueError, match="file:// rejected"):
-        f.fetch(Source(id="loc"))
+        f.fetch(make_source(url=p.as_uri()))
 
 
 def test_file_url_unchanged_returns_empty_list(tmp_path):
     p = tmp_path / "x.txt"
     p.write_text("hello", encoding="utf-8")
-    reg = {
-        "loc": {
-            "url": p.as_uri(),
-            "politeness": {"min_interval_seconds": 1},
-            "user_agent": "x",
-        }
-    }
-    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), reg, allow_file=True)
-    _docs1, cp = f.fetch(Source(id="loc"))
-    docs2, _cp2 = f.fetch(Source(id="loc"), cp)
+    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), allow_file=True)
+    _docs1, cp = f.fetch(make_source(url=p.as_uri()))
+    docs2, _cp2 = f.fetch(make_source(url=p.as_uri()), cp)
     assert len(docs2) == 0
 
 
 def test_CRLF_and_LF_copies_of_one_fixture_give_identical_content_hash(tmp_path):
-    p1 = tmp_path / "crlf.txt"
+    p1, p2 = tmp_path / "crlf.txt", tmp_path / "lf.txt"
     p1.write_bytes(b"line1\r\nline2\r\n")
-    p2 = tmp_path / "lf.txt"
     p2.write_bytes(b"line1\nline2\n")
-
-    reg = {
-        "s1": {
-            "url": p1.as_uri(),
-            "politeness": {"min_interval_seconds": 1},
-            "user_agent": "x",
-        },
-        "s2": {
-            "url": p2.as_uri(),
-            "politeness": {"min_interval_seconds": 1},
-            "user_agent": "x",
-        },
-    }
-    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), reg, allow_file=True)
-    d1, _ = f.fetch(Source(id="s1"))
-    d2, _ = f.fetch(Source(id="s2"))
+    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), allow_file=True)
+    d1, _ = f.fetch(make_source(id="s1", url=p1.as_uri()))
+    d2, _ = f.fetch(make_source(id="s2", url=p2.as_uri()))
     assert d1[0].content_hash == d2[0].content_hash
 
 
 def test_private_host_rejected():
-    reg = {
-        "loc": {
-            "url": "http://localhost/data",
-            "politeness": {"min_interval_seconds": 1},
-            "user_agent": "x",
-        }
-    }
-    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), reg, allow_local=False)
+    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), allow_local=False)
     with pytest.raises(ValueError, match="Private host rejected"):
-        f.fetch(Source(id="loc"))
+        f.fetch(make_source(url="http://localhost/data"))
 
 
-def test_failing_source_isolated_in_fetch_all(base_registry):
-    reg = base_registry.copy()
-    reg["bad"] = {
-        "url": "http://bad.com",
-        "politeness": {"min_interval_seconds": 1},
-        "user_agent": "x",
-    }
-
-    def handle(req):
-        if "acme" in str(req.url):
-            return httpx.Response(200, text="ok")
-        return httpx.Response(500)
-
-    client = httpx.Client(transport=httpx.MockTransport(handle))
-    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), reg, client=client)
-
-    rep = f.fetch_all([Source(id="acme"), Source(id="bad")], {})
-    assert "acme" in rep.successes
-    assert "bad" in rep.failures
-
-
-def test_User_Agent_matches_registry(base_registry):
+def test_User_Agent_matches_registry():
     def handle(req):
         assert req.headers["User-Agent"] == "TestBot"
         return httpx.Response(200, text="ok")
 
     client = httpx.Client(transport=httpx.MockTransport(handle))
-    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), base_registry, client=client)
-    f.fetch(Source(id="acme"))
+    f = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), client=client)
+    f.fetch(make_source())
+
+
+def test_fetch_all_file_sources(tmp_path):
+    f1, f2, f3, f4 = tmp_path/"a.html", tmp_path/"b.xml", tmp_path/"c.yaml", tmp_path/"d.txt"
+    f1.write_text("a", encoding="utf-8")
+    f2.write_text("b", encoding="utf-8")
+    f3.write_text("c", encoding="utf-8")
+    f4.write_text("d", encoding="utf-8")
+    
+    sources = [
+        make_source("f1", f1.as_uri()),
+        make_source("f2", f2.as_uri()),
+        make_source("f3", f3.as_uri()),
+        make_source("f4", f4.as_uri()),
+    ]
+    
+    # Use FakeClock instead of lambda: None
+    fetcher = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), allow_file=True)
+    res1 = fetcher.fetch_all(sources, {})
+    assert len(res1.documents) == 4
+    assert len(res1.checkpoints) == 4
+    assert not res1.failures
+    assert res1.documents[0].content_type == "text/html"
+    assert res1.documents[1].content_type == "application/xml"
+    assert res1.documents[2].content_type == "application/yaml"
+    assert res1.documents[3].content_type == "text/plain"
+
+    res2 = fetcher.fetch_all(sources, res1.checkpoints)
+    assert len(res2.documents) == 0
+    assert len(res2.checkpoints) == 4
+
+def test_failing_source_isolated_in_fetch_all():
+    s1 = make_source("good", "http://ok.com")
+    s2 = make_source("bad", "http://bad.com")
+    
+    def handle(req): 
+        # Explicitly fail the 'bad' source to trigger the isolation logic
+        if "bad.com" in str(req.url):
+            return httpx.Response(500)
+        return httpx.Response(200, text="ok")
+        
+    client = httpx.Client(transport=httpx.MockTransport(handle))
+    
+    # Use FakeClock instead of lambda: None
+    fetcher = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), client=client)
+    res = fetcher.fetch_all([s1, s2], {})
+    
+    assert len(res.documents) == 1
+    assert "good" in res.checkpoints
+    assert "bad" in res.failures

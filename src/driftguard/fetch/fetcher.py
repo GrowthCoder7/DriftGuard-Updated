@@ -15,24 +15,16 @@ from driftguard.protocols import Fetcher
 
 
 @dataclass
-class FetchReport:
-    successes: list[str]
+class FetchResult:
+    documents: list[RawDocument]
+    checkpoints: dict[str, Checkpoint]
     failures: dict[str, str]
 
 
 class HttpFetcher(Fetcher):
-    def __init__(
-        self,
-        clock,
-        sleep,
-        registry_config: dict[str, dict],
-        allow_file=False,
-        allow_local=False,
-        client=None,
-    ):
+    def __init__(self, clock, sleep, allow_file=False, allow_local=False, client=None):
         self.clock = clock
         self.sleep = sleep
-        self.registry = registry_config
         self.allow_file = allow_file
         self.allow_local = allow_local
         self.client = client or httpx.Client(timeout=10.0)
@@ -50,20 +42,12 @@ class HttpFetcher(Fetcher):
     def fetch(
         self, source: Source, checkpoint: Checkpoint | None = None
     ) -> tuple[list[RawDocument], Checkpoint]:
-        config = self.registry.get(source.id)
-        if not config:
-            raise ValueError(f"Source {source.id} not found in registry")
-
-        url = config["url"]
-        user_agent = config["user_agent"]
-        min_interval = config["politeness"]["min_interval_seconds"]
-        parsed = urllib.parse.urlparse(url)
+        parsed = urllib.parse.urlparse(source.url)
 
         if parsed.scheme == "file":
             if not self.allow_file:
                 raise ValueError("file:// rejected when allow_file=False")
 
-            # Reconstruct the file path correctly cross-platform
             path_str = urllib.request.url2pathname(parsed.netloc + parsed.path)
             path = Path(path_str)
             text = path.read_text(encoding="utf-8").replace("\r\n", "\n")
@@ -77,28 +61,39 @@ class HttpFetcher(Fetcher):
                 except json.JSONDecodeError:
                     pass
 
+            ext = path.suffix.lower()
+            ctype = "text/plain"
+            if ext == ".html":
+                ctype = "text/html"
+            elif ext in {".xml", ".rss"}:
+                ctype = "application/xml"
+            elif ext in {".yaml", ".yml"}:
+                ctype = "application/yaml"
+
             doc = RawDocument(
-                url=url,
+                source_id=source.id,
+                url=source.url,
                 fetched_at=self.clock(),
-                content_type="text/plain",
+                content_type=ctype,
                 text=text,
                 content_hash=content_hash,
             )
-            cp = Checkpoint(cursor=json.dumps({"hash": content_hash}))
-            return [doc], cp
+            return [doc], Checkpoint(cursor=json.dumps({"hash": content_hash}))
 
         if not self.allow_local and self._is_private_host(parsed.hostname or ""):
             raise ValueError("Private host rejected")
 
         # Robots.txt
         robots_url = f"{parsed.scheme}://{parsed.netloc}/robots.txt"
-        robots_resp = self.client.get(
-            robots_url, headers={"User-Agent": user_agent}, timeout=10.0
+        r_resp = self.client.get(
+            robots_url,
+            headers={"User-Agent": source.politeness.user_agent},
+            timeout=10.0,
         )
-        if robots_resp.status_code == 200:
+        if r_resp.status_code == 200:
             rp = RobotFileParser()
-            rp.parse(robots_resp.text.splitlines())
-            if not rp.can_fetch(user_agent, url):
+            rp.parse(r_resp.text.splitlines())
+            if not rp.can_fetch(source.politeness.user_agent, source.url):
                 raise ValueError("robots disallow skips")
 
         # Politeness
@@ -106,11 +101,11 @@ class HttpFetcher(Fetcher):
         last_t = self._last_fetch.get(host)
         if last_t:
             elapsed = (self.clock() - last_t).total_seconds()
-            if elapsed < min_interval:
-                self.sleep(min_interval - elapsed)
+            if elapsed < source.politeness.min_interval_seconds:
+                self.sleep(source.politeness.min_interval_seconds - elapsed)
 
-        # Conditional GET Headers
-        headers = {"User-Agent": user_agent}
+        # Conditional GET
+        headers = {"User-Agent": source.politeness.user_agent}
         if checkpoint and checkpoint.cursor:
             try:
                 cp_data = json.loads(checkpoint.cursor)
@@ -125,7 +120,7 @@ class HttpFetcher(Fetcher):
         resp = None
         for attempt in range(max_attempts):
             self._last_fetch[host] = self.clock()
-            resp = self.client.get(url, headers=headers, timeout=10.0)
+            resp = self.client.get(source.url, headers=headers, timeout=10.0)
 
             if resp.status_code in {429, 500, 502, 503, 504}:
                 if attempt == max_attempts - 1:
@@ -154,7 +149,8 @@ class HttpFetcher(Fetcher):
         lm = resp.headers.get("Last-Modified")
 
         doc = RawDocument(
-            url=url,
+            source_id=source.id,
+            url=source.url,
             fetched_at=self.clock(),
             content_type=resp.headers.get("Content-Type", "text/plain"),
             text=text,
@@ -162,20 +158,21 @@ class HttpFetcher(Fetcher):
             etag=etag,
             last_modified=lm,
         )
-        cp = Checkpoint(
+        return [doc], Checkpoint(
             cursor=json.dumps({"hash": content_hash, "etag": etag, "last_modified": lm})
         )
-        return [doc], cp
 
     def fetch_all(
         self, sources: list[Source], checkpoints: dict[str, Checkpoint]
-    ) -> FetchReport:
-        successes = []
+    ) -> FetchResult:
+        docs = []
+        new_cps = {}
         failures = {}
         for source in sources:
             try:
-                self.fetch(source, checkpoints.get(source.id))
-                successes.append(source.id)
+                d, c = self.fetch(source, checkpoints.get(source.id))
+                docs.extend(d)
+                new_cps[source.id] = c
             except Exception as e:  # noqa: BLE001
                 failures[source.id] = str(e)
-        return FetchReport(successes=successes, failures=failures)
+        return FetchResult(documents=docs, checkpoints=new_cps, failures=failures)

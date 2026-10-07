@@ -1,5 +1,7 @@
-from datetime import datetime, UTC
+from datetime import UTC, datetime
+
 from driftguard.models.support import RawDocument
+
 
 def test_RawDocument_accepts_etag_last_modified_as_optional():
     doc = RawDocument(
