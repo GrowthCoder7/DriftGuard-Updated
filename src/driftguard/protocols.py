@@ -1,10 +1,29 @@
-from typing import Protocol, Sequence
+from collections.abc import Sequence
+from typing import Protocol
+
+from driftguard.models.core import Contract, ContractCandidate, UsageRecord, Verdict
 from driftguard.models.support import (
-    Source, Checkpoint, RawDocument, Entry, ExtractContext, Corpus,
-    RepoSnapshot, AliasMap, Workspace, ReproResult, FixTask, PatchResult,
-    Patch, GatePolicy, GateDecision, Delivery, PromptRef, Budget, LLMResult
+    AliasMap,
+    Budget,
+    Checkpoint,
+    Corpus,
+    Delivery,
+    Entry,
+    ExtractContext,
+    FixTask,
+    GateDecision,
+    GatePolicy,
+    LLMResult,
+    Patch,
+    PatchResult,
+    PromptRef,
+    RawDocument,
+    RepoSnapshot,
+    ReproResult,
+    Source,
+    Workspace,
 )
-from driftguard.models.core import ContractCandidate, Contract, UsageRecord, Impact, Verdict
+
 
 class Fetcher(Protocol):
     def fetch(self, source: Source, checkpoint: Checkpoint) -> tuple[Sequence[RawDocument], Checkpoint]: ...

@@ -1,0 +1,84 @@
+{
+  "$defs": {
+    "Detector": {
+      "enum": [
+        "tree-sitter",
+        "rule",
+        "regex",
+        "runtime"
+      ],
+      "title": "Detector",
+      "type": "string"
+    },
+    "UsageKind": {
+      "enum": [
+        "import",
+        "call",
+        "config",
+        "manifest",
+        "url",
+        "model_string",
+        "runtime"
+      ],
+      "title": "UsageKind",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "repo": {
+      "title": "Repo",
+      "type": "string"
+    },
+    "commit_sha": {
+      "title": "Commit Sha",
+      "type": "string"
+    },
+    "file": {
+      "title": "File",
+      "type": "string"
+    },
+    "line": {
+      "title": "Line",
+      "type": "integer"
+    },
+    "symbol": {
+      "title": "Symbol",
+      "type": "string"
+    },
+    "vendor": {
+      "title": "Vendor",
+      "type": "string"
+    },
+    "surface_ref": {
+      "title": "Surface Ref",
+      "type": "string"
+    },
+    "kind": {
+      "$ref": "#/$defs/UsageKind"
+    },
+    "confidence": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "detector": {
+      "$ref": "#/$defs/Detector"
+    }
+  },
+  "required": [
+    "repo",
+    "commit_sha",
+    "file",
+    "line",
+    "symbol",
+    "vendor",
+    "surface_ref",
+    "kind",
+    "confidence",
+    "detector"
+  ],
+  "title": "UsageRecord",
+  "type": "object"
+}

@@ -28,9 +28,9 @@ IMPACT_TRANSITIONS: dict[ImpactState, list[ImpactState]] = {
 
 def can_transition(model_type: str, current: str, next_state: str) -> bool:
     if model_type.lower() == "contract":
-        valid = CONTRACT_TRANSITIONS.get(ContractStatus(current), [])
-        return ContractStatus(next_state) in valid
+        valid_c = CONTRACT_TRANSITIONS.get(ContractStatus(current), [])
+        return ContractStatus(next_state) in valid_c
     elif model_type.lower() == "impact":
-        valid = IMPACT_TRANSITIONS.get(ImpactState(current), [])
-        return ImpactState(next_state) in valid
+        valid_i = IMPACT_TRANSITIONS.get(ImpactState(current), [])
+        return ImpactState(next_state) in valid_i
     return False

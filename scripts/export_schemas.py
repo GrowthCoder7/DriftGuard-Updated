@@ -1,6 +1,8 @@
 import json
 import os
-from driftguard.models.core import Contract, UsageRecord, Impact, Verdict
+
+from driftguard.models.core import Contract, Impact, UsageRecord, Verdict
+
 
 def main() -> None:
     os.makedirs("schemas", exist_ok=True)

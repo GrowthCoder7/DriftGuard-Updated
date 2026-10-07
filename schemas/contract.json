@@ -1,0 +1,401 @@
+{
+  "$defs": {
+    "ChangeType": {
+      "enum": [
+        "removal",
+        "rename",
+        "deprecation",
+        "behavior_change",
+        "default_change",
+        "new_required",
+        "auth_change",
+        "rate_limit",
+        "model_retirement",
+        "model_replacement",
+        "additive_feature",
+        "pricing",
+        "other"
+      ],
+      "title": "ChangeType",
+      "type": "string"
+    },
+    "Checks": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_valid": {
+          "title": "Schema Valid",
+          "type": "boolean"
+        },
+        "quote_verbatim": {
+          "title": "Quote Verbatim",
+          "type": "boolean"
+        },
+        "identifier_grounded": {
+          "title": "Identifier Grounded",
+          "type": "boolean"
+        },
+        "date_valid": {
+          "title": "Date Valid",
+          "type": "boolean"
+        },
+        "corroborated": {
+          "title": "Corroborated",
+          "type": "boolean"
+        },
+        "self_consistent": {
+          "title": "Self Consistent",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "schema_valid",
+        "quote_verbatim",
+        "identifier_grounded",
+        "date_valid",
+        "corroborated",
+        "self_consistent"
+      ],
+      "title": "Checks",
+      "type": "object"
+    },
+    "Confidence": {
+      "additionalProperties": false,
+      "properties": {
+        "tier": {
+          "enum": [
+            "A",
+            "B",
+            "C",
+            "D"
+          ],
+          "title": "Tier",
+          "type": "string"
+        },
+        "checks": {
+          "$ref": "#/$defs/Checks"
+        },
+        "extractor": {
+          "enum": [
+            "deterministic",
+            "llm"
+          ],
+          "title": "Extractor",
+          "type": "string"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "prompt_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Prompt Version"
+        }
+      },
+      "required": [
+        "tier",
+        "checks",
+        "extractor"
+      ],
+      "title": "Confidence",
+      "type": "object"
+    },
+    "ContractStatus": {
+      "enum": [
+        "NEW",
+        "EXTRACTED",
+        "VALIDATED",
+        "REJECTED",
+        "NEEDS_REVIEW",
+        "CONFIRMED",
+        "ACTIVE",
+        "EXPIRED"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "Effective": {
+      "additionalProperties": false,
+      "properties": {
+        "announced_at": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Announced At"
+        },
+        "effective_at": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Effective At"
+        },
+        "enforcement": {
+          "enum": [
+            "hard",
+            "soft",
+            "unknown"
+          ],
+          "title": "Enforcement",
+          "type": "string"
+        }
+      },
+      "required": [
+        "enforcement"
+      ],
+      "title": "Effective",
+      "type": "object"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "quote": {
+          "maxLength": 500,
+          "title": "Quote",
+          "type": "string"
+        },
+        "source_url": {
+          "title": "Source Url",
+          "type": "string"
+        },
+        "entry_id": {
+          "title": "Entry Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "quote",
+        "source_url",
+        "entry_id"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "RequiredAction": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "none",
+            "rename",
+            "remove",
+            "migrate",
+            "upgrade_sdk",
+            "change_config",
+            "review"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "action",
+        "text"
+      ],
+      "title": "RequiredAction",
+      "type": "object"
+    },
+    "Surface": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/SurfaceKind"
+        },
+        "ref": {
+          "pattern": "^[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+$",
+          "title": "Ref",
+          "type": "string"
+        },
+        "method": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Method"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path"
+        },
+        "language": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Language"
+        }
+      },
+      "required": [
+        "kind",
+        "ref"
+      ],
+      "title": "Surface",
+      "type": "object"
+    },
+    "SurfaceKind": {
+      "enum": [
+        "endpoint",
+        "param",
+        "field",
+        "header",
+        "enum_value",
+        "model",
+        "sdk_symbol",
+        "webhook_event",
+        "auth",
+        "default"
+      ],
+      "title": "SurfaceKind",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "vendor": {
+      "title": "Vendor",
+      "type": "string"
+    },
+    "product": {
+      "title": "Product",
+      "type": "string"
+    },
+    "change_type": {
+      "$ref": "#/$defs/ChangeType"
+    },
+    "surface": {
+      "$ref": "#/$defs/Surface"
+    },
+    "before": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Before"
+    },
+    "after": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "After"
+    },
+    "effective": {
+      "$ref": "#/$defs/Effective"
+    },
+    "scope_conditions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Scope Conditions",
+      "type": "array"
+    },
+    "required_action": {
+      "$ref": "#/$defs/RequiredAction"
+    },
+    "evidence": {
+      "items": {
+        "$ref": "#/$defs/Evidence"
+      },
+      "minItems": 1,
+      "title": "Evidence",
+      "type": "array"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "confidence": {
+      "$ref": "#/$defs/Confidence"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus"
+    }
+  },
+  "required": [
+    "vendor",
+    "product",
+    "change_type",
+    "surface",
+    "effective",
+    "scope_conditions",
+    "required_action",
+    "evidence",
+    "id",
+    "confidence",
+    "status"
+  ],
+  "title": "Contract",
+  "type": "object"
+}

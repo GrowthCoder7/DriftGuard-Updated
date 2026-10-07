@@ -1,0 +1,53 @@
+{
+  "$defs": {
+    "VerdictTier": {
+      "enum": [
+        "V0",
+        "V1",
+        "V2",
+        "V3",
+        "V4"
+      ],
+      "title": "VerdictTier",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "tier": {
+      "$ref": "#/$defs/VerdictTier"
+    },
+    "evidence_refs": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "propertyNames": {
+        "enum": [
+          "baseline",
+          "mutated",
+          "post_fix",
+          "probe"
+        ]
+      },
+      "title": "Evidence Refs",
+      "type": "object"
+    },
+    "limitations": {
+      "title": "Limitations",
+      "type": "string"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "tier",
+    "evidence_refs",
+    "limitations",
+    "generated_at"
+  ],
+  "title": "Verdict",
+  "type": "object"
+}

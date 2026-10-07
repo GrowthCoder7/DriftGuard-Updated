@@ -1,9 +1,16 @@
+from datetime import UTC, datetime
+
 import pytest
-from datetime import datetime
+
 from driftguard.models.core import (
-    Contract, ContractCandidate, UsageRecord, Verdict, VerdictTier, make_contract_id
+    ContractCandidate,
+    UsageRecord,
+    Verdict,
+    VerdictTier,
+    make_contract_id,
 )
-from driftguard.models.transitions import can_transition, CONTRACT_TRANSITIONS, IMPACT_TRANSITIONS
+from driftguard.models.transitions import CONTRACT_TRANSITIONS, can_transition
+
 
 @pytest.fixture
 def valid_candidate_dict() -> dict[str, object]:
@@ -51,7 +58,6 @@ def test_contract_missing_evidence_rejected(valid_candidate_dict: dict[str, obje
         ContractCandidate(**valid_candidate_dict) # type: ignore
 
 def test_contract_quote_length_rejected(valid_candidate_dict: dict[str, object]) -> None:
-    # mypy requires types for dict indexing; simplify here
     ev: list[dict[str, str]] = valid_candidate_dict["evidence"] # type: ignore
     ev[0]["quote"] = "a" * 501
     with pytest.raises(ValueError):
@@ -83,7 +89,7 @@ def test_lifecycle_transitions() -> None:
 
 def test_usage_record_no_source_text_fields() -> None:
     banned = ["source", "snippet", "text", "code"]
-    for field_name in UsageRecord.model_fields.keys():
+    for field_name in UsageRecord.model_fields:
         for b in banned:
             assert b not in field_name.lower()
 
@@ -100,7 +106,7 @@ def test_usage_record_confidence() -> None:
 def test_verdict_limitations() -> None:
     base = {
         "evidence_refs": {"baseline": "1", "mutated": "2", "post_fix": "3", "probe": "4"},
-        "generated_at": datetime.now()
+        "generated_at": datetime.now(UTC)
     }
     with pytest.raises(ValueError):
         Verdict(**base, tier=VerdictTier.V1, limitations="") # type: ignore

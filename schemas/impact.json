@@ -1,0 +1,187 @@
+{
+  "$defs": {
+    "Detector": {
+      "enum": [
+        "tree-sitter",
+        "rule",
+        "regex",
+        "runtime"
+      ],
+      "title": "Detector",
+      "type": "string"
+    },
+    "ImpactState": {
+      "enum": [
+        "DETECTED",
+        "TRIAGED",
+        "REPRODUCING",
+        "FIXING",
+        "VERIFYING",
+        "DELIVERED",
+        "MERGED",
+        "CLOSED",
+        "SUPERSEDED",
+        "BASELINE_BROKEN",
+        "NOT_REPRODUCIBLE",
+        "AGENT_FAILED"
+      ],
+      "title": "ImpactState",
+      "type": "string"
+    },
+    "Severity": {
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "low"
+      ],
+      "title": "Severity",
+      "type": "string"
+    },
+    "UsageKind": {
+      "enum": [
+        "import",
+        "call",
+        "config",
+        "manifest",
+        "url",
+        "model_string",
+        "runtime"
+      ],
+      "title": "UsageKind",
+      "type": "string"
+    },
+    "UsageRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "repo": {
+          "title": "Repo",
+          "type": "string"
+        },
+        "commit_sha": {
+          "title": "Commit Sha",
+          "type": "string"
+        },
+        "file": {
+          "title": "File",
+          "type": "string"
+        },
+        "line": {
+          "title": "Line",
+          "type": "integer"
+        },
+        "symbol": {
+          "title": "Symbol",
+          "type": "string"
+        },
+        "vendor": {
+          "title": "Vendor",
+          "type": "string"
+        },
+        "surface_ref": {
+          "title": "Surface Ref",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/UsageKind"
+        },
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "detector": {
+          "$ref": "#/$defs/Detector"
+        }
+      },
+      "required": [
+        "repo",
+        "commit_sha",
+        "file",
+        "line",
+        "symbol",
+        "vendor",
+        "surface_ref",
+        "kind",
+        "confidence",
+        "detector"
+      ],
+      "title": "UsageRecord",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "contract_id": {
+      "title": "Contract Id",
+      "type": "string"
+    },
+    "repo": {
+      "title": "Repo",
+      "type": "string"
+    },
+    "usages": {
+      "items": {
+        "$ref": "#/$defs/UsageRecord"
+      },
+      "title": "Usages",
+      "type": "array"
+    },
+    "severity": {
+      "$ref": "#/$defs/Severity"
+    },
+    "priority": {
+      "title": "Priority",
+      "type": "number"
+    },
+    "owner": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Owner"
+    },
+    "deadline": {
+      "anyOf": [
+        {
+          "format": "date",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Deadline"
+    },
+    "state": {
+      "$ref": "#/$defs/ImpactState"
+    },
+    "idempotency_key": {
+      "title": "Idempotency Key",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "contract_id",
+    "repo",
+    "usages",
+    "severity",
+    "priority",
+    "state",
+    "idempotency_key"
+  ],
+  "title": "Impact",
+  "type": "object"
+}

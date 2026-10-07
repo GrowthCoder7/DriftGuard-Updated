@@ -1,6 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
-class ChangeType(str, Enum):
+
+class ChangeType(StrEnum):
     removal = "removal"
     rename = "rename"
     deprecation = "deprecation"
@@ -15,7 +16,7 @@ class ChangeType(str, Enum):
     pricing = "pricing"
     other = "other"
 
-class SurfaceKind(str, Enum):
+class SurfaceKind(StrEnum):
     endpoint = "endpoint"
     param = "param"
     field = "field"
@@ -27,7 +28,7 @@ class SurfaceKind(str, Enum):
     auth = "auth"
     default = "default"
 
-class ContractStatus(str, Enum):
+class ContractStatus(StrEnum):
     NEW = "NEW"
     EXTRACTED = "EXTRACTED"
     VALIDATED = "VALIDATED"
@@ -37,7 +38,7 @@ class ContractStatus(str, Enum):
     ACTIVE = "ACTIVE"
     EXPIRED = "EXPIRED"
 
-class UsageKind(str, Enum):
+class UsageKind(StrEnum):
     import_ = "import"
     call = "call"
     config = "config"
@@ -46,19 +47,19 @@ class UsageKind(str, Enum):
     model_string = "model_string"
     runtime = "runtime"
 
-class Detector(str, Enum):
+class Detector(StrEnum):
     tree_sitter = "tree-sitter"
     rule = "rule"
     regex = "regex"
     runtime = "runtime"
 
-class Severity(str, Enum):
+class Severity(StrEnum):
     critical = "critical"
     high = "high"
     medium = "medium"
     low = "low"
 
-class ImpactState(str, Enum):
+class ImpactState(StrEnum):
     DETECTED = "DETECTED"
     TRIAGED = "TRIAGED"
     REPRODUCING = "REPRODUCING"
@@ -72,7 +73,7 @@ class ImpactState(str, Enum):
     NOT_REPRODUCIBLE = "NOT_REPRODUCIBLE"
     AGENT_FAILED = "AGENT_FAILED"
 
-class VerdictTier(str, Enum):
+class VerdictTier(StrEnum):
     V0 = "V0"
     V1 = "V1"
     V2 = "V2"

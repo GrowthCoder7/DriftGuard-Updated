@@ -1,25 +1,33 @@
-from datetime import date, datetime
-from typing import Optional, Literal
-from pydantic import BaseModel, ConfigDict, Field, model_validator
 import hashlib
+from datetime import date, datetime
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .enums import (
-    ChangeType, SurfaceKind, ContractStatus, UsageKind, Detector,
-    Severity, ImpactState, VerdictTier
+    ChangeType,
+    ContractStatus,
+    Detector,
+    ImpactState,
+    Severity,
+    SurfaceKind,
+    UsageKind,
+    VerdictTier,
 )
+
 
 class Surface(BaseModel):
     model_config = ConfigDict(extra="forbid")
     kind: SurfaceKind
     ref: str = Field(pattern=r"^[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+$")
-    method: Optional[str] = None
-    path: Optional[str] = None
-    language: Optional[str] = None
+    method: str | None = None
+    path: str | None = None
+    language: str | None = None
 
 class Effective(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    announced_at: Optional[date] = None
-    effective_at: Optional[date] = None
+    announced_at: date | None = None
+    effective_at: date | None = None
     enforcement: Literal["hard", "soft", "unknown"]
 
 class RequiredAction(BaseModel):
@@ -47,8 +55,8 @@ class Confidence(BaseModel):
     tier: Literal["A", "B", "C", "D"]
     checks: Checks
     extractor: Literal["deterministic", "llm"]
-    model: Optional[str] = None
-    prompt_version: Optional[str] = None
+    model: str | None = None
+    prompt_version: str | None = None
 
 class ContractCandidate(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -57,8 +65,8 @@ class ContractCandidate(BaseModel):
     product: str
     change_type: ChangeType
     surface: Surface
-    before: Optional[dict[str, str]] = None
-    after: Optional[dict[str, str]] = None
+    before: dict[str, str] | None = None
+    after: dict[str, str] | None = None
     effective: Effective
     scope_conditions: list[str]
     required_action: RequiredAction
@@ -70,7 +78,7 @@ class Contract(ContractCandidate):
     confidence: Confidence
     status: ContractStatus
 
-def make_contract_id(vendor: str, product: str, surface_ref: str, change_type: str, effective_at: Optional[str], entry_id: str) -> str:
+def make_contract_id(vendor: str, product: str, surface_ref: str, change_type: str, effective_at: str | None, entry_id: str) -> str:
     eff = effective_at if effective_at else "undated"
     canon = f"{vendor}|{product}|{surface_ref}|{change_type}|{eff}|{entry_id}"
     h = hashlib.sha256(canon.encode("utf-8")).hexdigest()[:4]
@@ -101,8 +109,8 @@ class Impact(BaseModel):
     usages: list[UsageRecord]
     severity: Severity
     priority: float
-    owner: Optional[str] = None
-    deadline: Optional[date] = None
+    owner: str | None = None
+    deadline: date | None = None
     state: ImpactState
     idempotency_key: str
 
@@ -115,7 +123,6 @@ class Verdict(BaseModel):
 
     @model_validator(mode="after")
     def validate_limitations(self) -> "Verdict":
-        if self.tier in (VerdictTier.V1, VerdictTier.V2, VerdictTier.V3):
-            if not self.limitations or self.limitations.strip() == "":
-                raise ValueError(f"Limitations required for tier {self.tier}")
+        if self.tier in (VerdictTier.V1, VerdictTier.V2, VerdictTier.V3) and (not self.limitations or self.limitations.strip() == ""):
+            raise ValueError(f"Limitations required for tier {self.tier}")
         return self

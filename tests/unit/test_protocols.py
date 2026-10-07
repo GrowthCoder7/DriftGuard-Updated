@@ -1,6 +1,8 @@
-from typing import Sequence
+from collections.abc import Sequence
+
+from driftguard.models.support import Checkpoint, RawDocument, Source
 from driftguard.protocols import Fetcher
-from driftguard.models.support import Source, Checkpoint, RawDocument
+
 
 class FakeFetcher(Fetcher):
     def fetch(self, source: Source, checkpoint: Checkpoint) -> tuple[Sequence[RawDocument], Checkpoint]:
