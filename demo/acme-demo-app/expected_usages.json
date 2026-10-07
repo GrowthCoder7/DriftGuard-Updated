@@ -1,0 +1,14 @@
+[
+  {"surface_ref": "model:acme-pro-2025-01", "file": "acme_stub_server/server.py", "line": 13},
+  {"surface_ref": "param:max_tokens", "file": "app/legacy_job.py", "line": 1},
+  {"surface_ref": "model:acme-pro-2025-01", "file": "app/legacy_job.py", "line": 5},
+  {"surface_ref": "param:max_tokens", "file": "app/legacy_job.py", "line": 5},
+  {"surface_ref": "param:max_tokens", "file": "app/summarizer.py", "line": 3},
+  {"surface_ref": "model:acme-pro-2025-01", "file": "app/summarizer.py", "line": 12},
+  {"surface_ref": "param:max_tokens", "file": "app/summarizer.py", "line": 14},
+  {"surface_ref": "param:max_tokens", "file": "tests/test_app.py", "line": 3},
+  {"surface_ref": "model:acme-pro-2025-01", "file": "tests/test_app.py", "line": 7},
+  {"surface_ref": "model:acme-pro-2025-01", "file": "tests/test_app.py", "line": 12},
+  {"surface_ref": "model:acme-pro-2025-01", "file": "tests/test_app.py", "line": 23},
+  {"surface_ref": "model:acme-pro-2025-01", "file": "tests/test_app.py", "line": 28}
+]
