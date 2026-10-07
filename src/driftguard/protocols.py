@@ -1,7 +1,15 @@
-from collections.abc import Sequence
+from collections.abc import Iterable
 from typing import Protocol
 
-from driftguard.models.core import Contract, ContractCandidate, UsageRecord, Verdict
+from pydantic import BaseModel
+
+from driftguard.models.core import (
+    Contract,
+    ContractCandidate,
+    Impact,
+    UsageRecord,
+    Verdict,
+)
 from driftguard.models.support import (
     AliasMap,
     Budget,
@@ -27,55 +35,57 @@ from driftguard.models.support import (
 
 class Fetcher(Protocol):
     def fetch(
-        self, source: Source, checkpoint: Checkpoint
-    ) -> tuple[Sequence[RawDocument], Checkpoint]: ...
+        self, source: Source, checkpoint: Checkpoint | None
+    ) -> tuple[list[RawDocument], Checkpoint]: ...
 
 
 class EntrySplitter(Protocol):
-    def split(self, doc: RawDocument) -> Sequence[Entry]: ...
+    def split(self, doc: RawDocument) -> list[Entry]: ...
 
 
 class ContractExtractor(Protocol):
-    def extract(
-        self, entry: Entry, ctx: ExtractContext
-    ) -> Sequence[ContractCandidate]: ...
+    def extract(self, entry: Entry, ctx: ExtractContext) -> list[ContractCandidate]: ...
 
 
 class Validator(Protocol):
-    def validate(self, candidate: ContractCandidate) -> Contract: ...
+    def validate(
+        self, cand: ContractCandidate, entry: Entry, corpus: Corpus
+    ) -> Contract: ...
 
 
 class InventoryIndexer(Protocol):
-    def index(self, corpus: Corpus) -> None: ...
+    def scan(self, snapshot: RepoSnapshot, since: str | None) -> list[UsageRecord]: ...
 
 
 class Matcher(Protocol):
     def match(
-        self, contract: Contract, snapshot: RepoSnapshot, aliases: AliasMap
-    ) -> Sequence[UsageRecord]: ...
+        self, contract: Contract, usages: Iterable[UsageRecord], aliases: AliasMap
+    ) -> list[Impact]: ...
 
 
 class Simulator(Protocol):
-    def simulate(
-        self, contract: Contract, usages: Sequence[UsageRecord], workspace: Workspace
-    ) -> ReproResult: ...
+    def reproduce(self, impact: Impact, ws: Workspace) -> ReproResult: ...
 
 
 class AgentAdapter(Protocol):
-    def fix(self, task: FixTask, workspace: Workspace) -> PatchResult: ...
+    def propose_patch(self, task: FixTask, ws: Workspace) -> PatchResult: ...
 
 
 class PatchGate(Protocol):
-    def evaluate(self, patch: Patch, policy: GatePolicy) -> GateDecision: ...
+    def check(self, patch: Patch, policy: GatePolicy) -> GateDecision: ...
 
 
 class Verifier(Protocol):
-    def verify(self, patch: Patch, repro: ReproResult) -> Verdict: ...
+    def verify(self, impact: Impact, patch: Patch | None, ws: Workspace) -> Verdict: ...
 
 
 class Deliverer(Protocol):
-    def deliver(self, delivery: Delivery) -> None: ...
+    def deliver(
+        self, impact: Impact, verdict: Verdict, patch: Patch | None
+    ) -> Delivery: ...
 
 
 class LLMClient(Protocol):
-    def complete(self, prompt: PromptRef, budget: Budget) -> LLMResult: ...
+    def complete_json(
+        self, prompt: PromptRef, schema: type[BaseModel], budget: Budget
+    ) -> LLMResult: ...

@@ -15,13 +15,12 @@ from .enums import (
     VerdictTier,
 )
 
+ONTOLOGY_REF_PATTERN = r"^[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+$"
 
 class Surface(BaseModel):
     model_config = ConfigDict(extra="forbid")
     kind: SurfaceKind
-    ref: str = Field(
-        pattern=r"^[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+$"
-    )
+    ref: str = Field(pattern=ONTOLOGY_REF_PATTERN)
     method: str | None = None
     path: str | None = None
     language: str | None = None
@@ -36,9 +35,7 @@ class Effective(BaseModel):
 
 class RequiredAction(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    action: Literal[
-        "none", "rename", "remove", "migrate", "upgrade_sdk", "change_config", "review"
-    ]
+    action: Literal["none", "rename", "remove", "migrate", "upgrade_sdk", "change_config", "review"]
     text: str
 
 
@@ -90,14 +87,7 @@ class Contract(ContractCandidate):
     status: ContractStatus
 
 
-def make_contract_id(
-    vendor: str,
-    product: str,
-    surface_ref: str,
-    change_type: str,
-    effective_at: str | None,
-    entry_id: str,
-) -> str:
+def make_contract_id(vendor: str, product: str, surface_ref: str, change_type: str, effective_at: str | None, entry_id: str) -> str:
     eff = effective_at if effective_at else "undated"
     canon = f"{vendor}|{product}|{surface_ref}|{change_type}|{eff}|{entry_id}"
     h = hashlib.sha256(canon.encode("utf-8")).hexdigest()[:4]
@@ -116,7 +106,7 @@ class UsageRecord(BaseModel):
     line: int
     symbol: str
     vendor: str
-    surface_ref: str
+    surface_ref: str = Field(pattern=ONTOLOGY_REF_PATTERN)
     kind: UsageKind
     confidence: float = Field(ge=0.0, le=1.0)
     detector: Detector
@@ -145,8 +135,6 @@ class Verdict(BaseModel):
 
     @model_validator(mode="after")
     def validate_limitations(self) -> "Verdict":
-        if self.tier in (VerdictTier.V1, VerdictTier.V2, VerdictTier.V3) and (
-            not self.limitations or self.limitations.strip() == ""
-        ):
+        if self.tier in (VerdictTier.V1, VerdictTier.V2, VerdictTier.V3) and (not self.limitations or self.limitations.strip() == ""):
             raise ValueError(f"Limitations required for tier {self.tier}")
         return self

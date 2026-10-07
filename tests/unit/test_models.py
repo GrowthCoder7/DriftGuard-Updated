@@ -223,3 +223,33 @@ def test_UsageRecord_confidence_out_of_range_rejected() -> None:
         UsageRecord(**base, confidence=1.5)  # type: ignore
     with pytest.raises(ValueError):
         UsageRecord(**base, confidence=-0.1)  # type: ignore
+
+
+def test_usage_record_surface_ref_validation() -> None:
+    from driftguard.models.core import UsageRecord
+
+    valid = {
+        "repo": "r",
+        "commit_sha": "c",
+        "file": "f",
+        "line": 1,
+        "symbol": "s",
+        "vendor": "acme",
+        "surface_ref": "acme:models:model:acme-pro-2025-01",
+        "kind": "call",
+        "confidence": 1.0,
+        "detector": "rule",
+    }
+    UsageRecord(**valid)  # Should pass
+
+    invalid = valid.copy()
+    invalid["surface_ref"] = "model:acme-pro-2025-01"
+    with pytest.raises(ValueError):
+        UsageRecord(**invalid)  # type: ignore
+
+
+def test_support_types_reject_unknown_fields() -> None:
+    from driftguard.models.support import Workspace
+
+    with pytest.raises(ValueError):
+        Workspace(path="/tmp", unknown_field="bad")  # type: ignore

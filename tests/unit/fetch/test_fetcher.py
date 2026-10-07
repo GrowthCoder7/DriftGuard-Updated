@@ -139,7 +139,7 @@ def test_429_Retry_After_honoured(base_registry):
     def handle(req):
         if req.url.path == "/robots.txt":
             return httpx.Response(404)
-            
+
         state["calls"] += 1
         if state["calls"] == 1:
             return httpx.Response(429, headers={"Retry-After": "2"})

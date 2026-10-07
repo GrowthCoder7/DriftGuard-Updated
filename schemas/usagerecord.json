@@ -55,6 +55,7 @@
       "type": "string"
     },
     "surface_ref": {
+      "pattern": "^[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+$",
       "title": "Surface Ref",
       "type": "string"
     },

@@ -41,3 +41,6 @@ warn_unused_configs = true
 [[tool.mypy.overrides]]
 module = ["driftguard.models.*", "driftguard.protocols"]
 strict = true
+
+[tool.ruff.lint.per-file-ignores]
+"src/driftguard/inventory/*" = ["BLE001"]
