@@ -1,6 +1,8 @@
-import yaml
 from pathlib import Path
+
+import yaml
 from acme_sdk.client import AcmeClient
+
 
 def summarize_text(text: str):
     config_path = Path(__file__).parent / "config.yaml"

@@ -4,11 +4,13 @@ from pathlib import Path
 # Explicitly add the acme-demo-app root directory to the Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-import pytest
 import threading
 import time
+
+import pytest
 import uvicorn
 from acme_stub_server.server import app
+
 
 @pytest.fixture(scope="session", autouse=True)
 def start_stub_server():
