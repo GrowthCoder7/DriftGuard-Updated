@@ -1,7 +1,7 @@
 import pytest
 import httpx
-from demo.acme_demo_app.acme_sdk.client import AcmeClient
-from demo.acme_demo_app.app.summarizer import summarize_text
+from acme_sdk.client import AcmeClient
+from app.summarizer import summarize_text
 
 def test_stub_health():
     res = httpx.post("http://127.0.0.1:8000/v1/chat", json={"model": "acme-pro-2025-01", "messages": [], "max_tokens": 10})

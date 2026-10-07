@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+
 def run():
     repo_root = Path(__file__).parent.parent
     jsonl_path = repo_root / "gold/g0_seed.jsonl"
