@@ -14,9 +14,6 @@
   },
   "additionalProperties": false,
   "properties": {
-    "tier": {
-      "$ref": "#/$defs/VerdictTier"
-    },
     "evidence_refs": {
       "additionalProperties": {
         "type": "string"
@@ -32,14 +29,17 @@
       "title": "Evidence Refs",
       "type": "object"
     },
-    "limitations": {
-      "title": "Limitations",
-      "type": "string"
-    },
     "generated_at": {
       "format": "date-time",
       "title": "Generated At",
       "type": "string"
+    },
+    "limitations": {
+      "title": "Limitations",
+      "type": "string"
+    },
+    "tier": {
+      "$ref": "#/$defs/VerdictTier"
     }
   },
   "required": [

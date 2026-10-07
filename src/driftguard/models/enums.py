@@ -16,6 +16,7 @@ class ChangeType(StrEnum):
     pricing = "pricing"
     other = "other"
 
+
 class SurfaceKind(StrEnum):
     endpoint = "endpoint"
     param = "param"
@@ -28,6 +29,7 @@ class SurfaceKind(StrEnum):
     auth = "auth"
     default = "default"
 
+
 class ContractStatus(StrEnum):
     NEW = "NEW"
     EXTRACTED = "EXTRACTED"
@@ -38,6 +40,7 @@ class ContractStatus(StrEnum):
     ACTIVE = "ACTIVE"
     EXPIRED = "EXPIRED"
 
+
 class UsageKind(StrEnum):
     import_ = "import"
     call = "call"
@@ -47,17 +50,20 @@ class UsageKind(StrEnum):
     model_string = "model_string"
     runtime = "runtime"
 
+
 class Detector(StrEnum):
     tree_sitter = "tree-sitter"
     rule = "rule"
     regex = "regex"
     runtime = "runtime"
 
+
 class Severity(StrEnum):
     critical = "critical"
     high = "high"
     medium = "medium"
     low = "low"
+
 
 class ImpactState(StrEnum):
     DETECTED = "DETECTED"
@@ -72,6 +78,7 @@ class ImpactState(StrEnum):
     BASELINE_BROKEN = "BASELINE_BROKEN"
     NOT_REPRODUCIBLE = "NOT_REPRODUCIBLE"
     AGENT_FAILED = "AGENT_FAILED"
+
 
 class VerdictTier(StrEnum):
     V0 = "V0"

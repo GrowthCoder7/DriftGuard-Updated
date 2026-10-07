@@ -1,15 +1,15 @@
 import json
-import os
+from pathlib import Path
 
 from driftguard.models.core import Contract
 
 
 def test_schema_export_matches() -> None:
-    schema_path = "schemas/contract.json"
-    if not os.path.exists(schema_path):
-        return  # skip if not generated yet
+    schema_path = Path("schemas/contract.json")
+    if not schema_path.exists():
+        return
+    with schema_path.open("r", encoding="utf-8") as f:
+        on_disk = json.loads(f.read())
 
-    with open(schema_path) as f:
-        on_disk = json.load(f)
-    
-    assert Contract.model_json_schema() == on_disk
+    generated = json.loads(json.dumps(Contract.model_json_schema(), sort_keys=True))
+    assert generated == on_disk

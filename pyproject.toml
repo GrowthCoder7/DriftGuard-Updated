@@ -6,6 +6,7 @@ requires-python = ">=3.12"
 dependencies = [
     "pydantic>=2.0",
     "pyyaml",
+    "httpx",
 ]
 
 [project.optional-dependencies]
@@ -26,7 +27,7 @@ target-version = "py312"
 extend-select = ["I", "UP"]
 
 [tool.pytest.ini_options]
-addopts = "--cov=src/driftguard/models --cov-fail-under=85"
+addopts = "--cov=src/driftguard/models --cov=src/driftguard/fetch --cov-fail-under=85"
 testpaths = ["tests"]
 
 [tool.mypy]

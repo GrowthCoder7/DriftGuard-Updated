@@ -54,36 +54,9 @@
     "UsageRecord": {
       "additionalProperties": false,
       "properties": {
-        "repo": {
-          "title": "Repo",
-          "type": "string"
-        },
         "commit_sha": {
           "title": "Commit Sha",
           "type": "string"
-        },
-        "file": {
-          "title": "File",
-          "type": "string"
-        },
-        "line": {
-          "title": "Line",
-          "type": "integer"
-        },
-        "symbol": {
-          "title": "Symbol",
-          "type": "string"
-        },
-        "vendor": {
-          "title": "Vendor",
-          "type": "string"
-        },
-        "surface_ref": {
-          "title": "Surface Ref",
-          "type": "string"
-        },
-        "kind": {
-          "$ref": "#/$defs/UsageKind"
         },
         "confidence": {
           "maximum": 1.0,
@@ -93,6 +66,33 @@
         },
         "detector": {
           "$ref": "#/$defs/Detector"
+        },
+        "file": {
+          "title": "File",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/UsageKind"
+        },
+        "line": {
+          "title": "Line",
+          "type": "integer"
+        },
+        "repo": {
+          "title": "Repo",
+          "type": "string"
+        },
+        "surface_ref": {
+          "title": "Surface Ref",
+          "type": "string"
+        },
+        "symbol": {
+          "title": "Symbol",
+          "type": "string"
+        },
+        "vendor": {
+          "title": "Vendor",
+          "type": "string"
         }
       },
       "required": [
@@ -113,43 +113,9 @@
   },
   "additionalProperties": false,
   "properties": {
-    "id": {
-      "title": "Id",
-      "type": "string"
-    },
     "contract_id": {
       "title": "Contract Id",
       "type": "string"
-    },
-    "repo": {
-      "title": "Repo",
-      "type": "string"
-    },
-    "usages": {
-      "items": {
-        "$ref": "#/$defs/UsageRecord"
-      },
-      "title": "Usages",
-      "type": "array"
-    },
-    "severity": {
-      "$ref": "#/$defs/Severity"
-    },
-    "priority": {
-      "title": "Priority",
-      "type": "number"
-    },
-    "owner": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Owner"
     },
     "deadline": {
       "anyOf": [
@@ -164,12 +130,46 @@
       "default": null,
       "title": "Deadline"
     },
-    "state": {
-      "$ref": "#/$defs/ImpactState"
+    "id": {
+      "title": "Id",
+      "type": "string"
     },
     "idempotency_key": {
       "title": "Idempotency Key",
       "type": "string"
+    },
+    "owner": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Owner"
+    },
+    "priority": {
+      "title": "Priority",
+      "type": "number"
+    },
+    "repo": {
+      "title": "Repo",
+      "type": "string"
+    },
+    "severity": {
+      "$ref": "#/$defs/Severity"
+    },
+    "state": {
+      "$ref": "#/$defs/ImpactState"
+    },
+    "usages": {
+      "items": {
+        "$ref": "#/$defs/UsageRecord"
+      },
+      "title": "Usages",
+      "type": "array"
     }
   },
   "required": [

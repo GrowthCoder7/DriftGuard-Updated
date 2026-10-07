@@ -3,10 +3,12 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
+
 class ChatRequest(BaseModel):
     model: str
     messages: list
     max_tokens: int | None = None
+
 
 @app.post("/v1/chat")
 def chat_endpoint(req: ChatRequest):

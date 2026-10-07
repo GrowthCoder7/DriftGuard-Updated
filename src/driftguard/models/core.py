@@ -19,10 +19,13 @@ from .enums import (
 class Surface(BaseModel):
     model_config = ConfigDict(extra="forbid")
     kind: SurfaceKind
-    ref: str = Field(pattern=r"^[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+$")
+    ref: str = Field(
+        pattern=r"^[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+$"
+    )
     method: str | None = None
     path: str | None = None
     language: str | None = None
+
 
 class Effective(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -30,16 +33,21 @@ class Effective(BaseModel):
     effective_at: date | None = None
     enforcement: Literal["hard", "soft", "unknown"]
 
+
 class RequiredAction(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    action: Literal["none", "rename", "remove", "migrate", "upgrade_sdk", "change_config", "review"]
+    action: Literal[
+        "none", "rename", "remove", "migrate", "upgrade_sdk", "change_config", "review"
+    ]
     text: str
+
 
 class Evidence(BaseModel):
     model_config = ConfigDict(extra="forbid")
     quote: str = Field(max_length=500)
     source_url: str
     entry_id: str
+
 
 class Checks(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -50,6 +58,7 @@ class Checks(BaseModel):
     corroborated: bool
     self_consistent: bool
 
+
 class Confidence(BaseModel):
     model_config = ConfigDict(extra="forbid")
     tier: Literal["A", "B", "C", "D"]
@@ -57,6 +66,7 @@ class Confidence(BaseModel):
     extractor: Literal["deterministic", "llm"]
     model: str | None = None
     prompt_version: str | None = None
+
 
 class ContractCandidate(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -72,13 +82,22 @@ class ContractCandidate(BaseModel):
     required_action: RequiredAction
     evidence: list[Evidence] = Field(min_length=1)
 
+
 class Contract(ContractCandidate):
     model_config = ConfigDict(extra="forbid")
     id: str
     confidence: Confidence
     status: ContractStatus
 
-def make_contract_id(vendor: str, product: str, surface_ref: str, change_type: str, effective_at: str | None, entry_id: str) -> str:
+
+def make_contract_id(
+    vendor: str,
+    product: str,
+    surface_ref: str,
+    change_type: str,
+    effective_at: str | None,
+    entry_id: str,
+) -> str:
     eff = effective_at if effective_at else "undated"
     canon = f"{vendor}|{product}|{surface_ref}|{change_type}|{eff}|{entry_id}"
     h = hashlib.sha256(canon.encode("utf-8")).hexdigest()[:4]
@@ -87,6 +106,7 @@ def make_contract_id(vendor: str, product: str, surface_ref: str, change_type: s
     except IndexError:
         kind = "unknown"
     return f"{vendor}-{product}-{kind}-{change_type}-{eff}-{h}"
+
 
 class UsageRecord(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -101,6 +121,7 @@ class UsageRecord(BaseModel):
     confidence: float = Field(ge=0.0, le=1.0)
     detector: Detector
 
+
 class Impact(BaseModel):
     model_config = ConfigDict(extra="forbid")
     id: str
@@ -114,6 +135,7 @@ class Impact(BaseModel):
     state: ImpactState
     idempotency_key: str
 
+
 class Verdict(BaseModel):
     model_config = ConfigDict(extra="forbid")
     tier: VerdictTier
@@ -123,6 +145,8 @@ class Verdict(BaseModel):
 
     @model_validator(mode="after")
     def validate_limitations(self) -> "Verdict":
-        if self.tier in (VerdictTier.V1, VerdictTier.V2, VerdictTier.V3) and (not self.limitations or self.limitations.strip() == ""):
+        if self.tier in (VerdictTier.V1, VerdictTier.V2, VerdictTier.V3) and (
+            not self.limitations or self.limitations.strip() == ""
+        ):
             raise ValueError(f"Limitations required for tier {self.tier}")
         return self

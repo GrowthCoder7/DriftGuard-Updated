@@ -26,36 +26,9 @@
   },
   "additionalProperties": false,
   "properties": {
-    "repo": {
-      "title": "Repo",
-      "type": "string"
-    },
     "commit_sha": {
       "title": "Commit Sha",
       "type": "string"
-    },
-    "file": {
-      "title": "File",
-      "type": "string"
-    },
-    "line": {
-      "title": "Line",
-      "type": "integer"
-    },
-    "symbol": {
-      "title": "Symbol",
-      "type": "string"
-    },
-    "vendor": {
-      "title": "Vendor",
-      "type": "string"
-    },
-    "surface_ref": {
-      "title": "Surface Ref",
-      "type": "string"
-    },
-    "kind": {
-      "$ref": "#/$defs/UsageKind"
     },
     "confidence": {
       "maximum": 1.0,
@@ -65,6 +38,33 @@
     },
     "detector": {
       "$ref": "#/$defs/Detector"
+    },
+    "file": {
+      "title": "File",
+      "type": "string"
+    },
+    "kind": {
+      "$ref": "#/$defs/UsageKind"
+    },
+    "line": {
+      "title": "Line",
+      "type": "integer"
+    },
+    "repo": {
+      "title": "Repo",
+      "type": "string"
+    },
+    "surface_ref": {
+      "title": "Surface Ref",
+      "type": "string"
+    },
+    "symbol": {
+      "title": "Symbol",
+      "type": "string"
+    },
+    "vendor": {
+      "title": "Vendor",
+      "type": "string"
     }
   },
   "required": [

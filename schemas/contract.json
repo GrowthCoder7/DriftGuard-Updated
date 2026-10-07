@@ -22,24 +22,24 @@
     "Checks": {
       "additionalProperties": false,
       "properties": {
-        "schema_valid": {
-          "title": "Schema Valid",
-          "type": "boolean"
-        },
-        "quote_verbatim": {
-          "title": "Quote Verbatim",
-          "type": "boolean"
-        },
-        "identifier_grounded": {
-          "title": "Identifier Grounded",
+        "corroborated": {
+          "title": "Corroborated",
           "type": "boolean"
         },
         "date_valid": {
           "title": "Date Valid",
           "type": "boolean"
         },
-        "corroborated": {
-          "title": "Corroborated",
+        "identifier_grounded": {
+          "title": "Identifier Grounded",
+          "type": "boolean"
+        },
+        "quote_verbatim": {
+          "title": "Quote Verbatim",
+          "type": "boolean"
+        },
+        "schema_valid": {
+          "title": "Schema Valid",
           "type": "boolean"
         },
         "self_consistent": {
@@ -61,16 +61,6 @@
     "Confidence": {
       "additionalProperties": false,
       "properties": {
-        "tier": {
-          "enum": [
-            "A",
-            "B",
-            "C",
-            "D"
-          ],
-          "title": "Tier",
-          "type": "string"
-        },
         "checks": {
           "$ref": "#/$defs/Checks"
         },
@@ -105,6 +95,16 @@
           ],
           "default": null,
           "title": "Prompt Version"
+        },
+        "tier": {
+          "enum": [
+            "A",
+            "B",
+            "C",
+            "D"
+          ],
+          "title": "Tier",
+          "type": "string"
         }
       },
       "required": [
@@ -177,6 +177,10 @@
     "Evidence": {
       "additionalProperties": false,
       "properties": {
+        "entry_id": {
+          "title": "Entry Id",
+          "type": "string"
+        },
         "quote": {
           "maxLength": 500,
           "title": "Quote",
@@ -184,10 +188,6 @@
         },
         "source_url": {
           "title": "Source Url",
-          "type": "string"
-        },
-        "entry_id": {
-          "title": "Entry Id",
           "type": "string"
         }
       },
@@ -233,10 +233,17 @@
         "kind": {
           "$ref": "#/$defs/SurfaceKind"
         },
-        "ref": {
-          "pattern": "^[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+$",
-          "title": "Ref",
-          "type": "string"
+        "language": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Language"
         },
         "method": {
           "anyOf": [
@@ -262,17 +269,10 @@
           "default": null,
           "title": "Path"
         },
-        "language": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Language"
+        "ref": {
+          "pattern": "^[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+$",
+          "title": "Ref",
+          "type": "string"
         }
       },
       "required": [
@@ -301,25 +301,20 @@
   },
   "additionalProperties": false,
   "properties": {
-    "schema_version": {
-      "const": "1.0",
-      "default": "1.0",
-      "title": "Schema Version",
-      "type": "string"
-    },
-    "vendor": {
-      "title": "Vendor",
-      "type": "string"
-    },
-    "product": {
-      "title": "Product",
-      "type": "string"
-    },
-    "change_type": {
-      "$ref": "#/$defs/ChangeType"
-    },
-    "surface": {
-      "$ref": "#/$defs/Surface"
+    "after": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "After"
     },
     "before": {
       "anyOf": [
@@ -336,33 +331,14 @@
       "default": null,
       "title": "Before"
     },
-    "after": {
-      "anyOf": [
-        {
-          "additionalProperties": {
-            "type": "string"
-          },
-          "type": "object"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "After"
+    "change_type": {
+      "$ref": "#/$defs/ChangeType"
+    },
+    "confidence": {
+      "$ref": "#/$defs/Confidence"
     },
     "effective": {
       "$ref": "#/$defs/Effective"
-    },
-    "scope_conditions": {
-      "items": {
-        "type": "string"
-      },
-      "title": "Scope Conditions",
-      "type": "array"
-    },
-    "required_action": {
-      "$ref": "#/$defs/RequiredAction"
     },
     "evidence": {
       "items": {
@@ -376,11 +352,35 @@
       "title": "Id",
       "type": "string"
     },
-    "confidence": {
-      "$ref": "#/$defs/Confidence"
+    "product": {
+      "title": "Product",
+      "type": "string"
+    },
+    "required_action": {
+      "$ref": "#/$defs/RequiredAction"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope_conditions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Scope Conditions",
+      "type": "array"
     },
     "status": {
       "$ref": "#/$defs/ContractStatus"
+    },
+    "surface": {
+      "$ref": "#/$defs/Surface"
+    },
+    "vendor": {
+      "title": "Vendor",
+      "type": "string"
     }
   },
   "required": [

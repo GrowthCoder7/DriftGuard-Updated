@@ -5,8 +5,11 @@ from driftguard.protocols import Fetcher
 
 
 class FakeFetcher(Fetcher):
-    def fetch(self, source: Source, checkpoint: Checkpoint) -> tuple[Sequence[RawDocument], Checkpoint]:
+    def fetch(
+        self, source: Source, checkpoint: Checkpoint
+    ) -> tuple[Sequence[RawDocument], Checkpoint]:
         return [], checkpoint
+
 
 def test_protocol_typing() -> None:
     f: Fetcher = FakeFetcher()

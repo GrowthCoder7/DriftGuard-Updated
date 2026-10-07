@@ -2,7 +2,11 @@ from .enums import ContractStatus, ImpactState
 
 CONTRACT_TRANSITIONS: dict[ContractStatus, list[ContractStatus]] = {
     ContractStatus.NEW: [ContractStatus.EXTRACTED, ContractStatus.REJECTED],
-    ContractStatus.EXTRACTED: [ContractStatus.VALIDATED, ContractStatus.NEEDS_REVIEW, ContractStatus.REJECTED],
+    ContractStatus.EXTRACTED: [
+        ContractStatus.VALIDATED,
+        ContractStatus.NEEDS_REVIEW,
+        ContractStatus.REJECTED,
+    ],
     ContractStatus.NEEDS_REVIEW: [ContractStatus.CONFIRMED, ContractStatus.REJECTED],
     ContractStatus.VALIDATED: [ContractStatus.ACTIVE, ContractStatus.EXPIRED],
     ContractStatus.CONFIRMED: [ContractStatus.ACTIVE, ContractStatus.EXPIRED],
@@ -12,9 +16,17 @@ CONTRACT_TRANSITIONS: dict[ContractStatus, list[ContractStatus]] = {
 }
 
 IMPACT_TRANSITIONS: dict[ImpactState, list[ImpactState]] = {
-    ImpactState.DETECTED: [ImpactState.TRIAGED, ImpactState.CLOSED, ImpactState.SUPERSEDED],
+    ImpactState.DETECTED: [
+        ImpactState.TRIAGED,
+        ImpactState.CLOSED,
+        ImpactState.SUPERSEDED,
+    ],
     ImpactState.TRIAGED: [ImpactState.REPRODUCING, ImpactState.CLOSED],
-    ImpactState.REPRODUCING: [ImpactState.FIXING, ImpactState.BASELINE_BROKEN, ImpactState.NOT_REPRODUCIBLE],
+    ImpactState.REPRODUCING: [
+        ImpactState.FIXING,
+        ImpactState.BASELINE_BROKEN,
+        ImpactState.NOT_REPRODUCIBLE,
+    ],
     ImpactState.FIXING: [ImpactState.VERIFYING, ImpactState.AGENT_FAILED],
     ImpactState.VERIFYING: [ImpactState.DELIVERED, ImpactState.FIXING],
     ImpactState.DELIVERED: [ImpactState.MERGED, ImpactState.SUPERSEDED],
@@ -25,6 +37,7 @@ IMPACT_TRANSITIONS: dict[ImpactState, list[ImpactState]] = {
     ImpactState.CLOSED: [],
     ImpactState.SUPERSEDED: [],
 }
+
 
 def can_transition(model_type: str, current: str, next_state: str) -> bool:
     if model_type.lower() == "contract":
