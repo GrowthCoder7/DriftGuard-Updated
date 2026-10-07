@@ -206,19 +206,24 @@ def test_User_Agent_matches_registry():
 
 
 def test_fetch_all_file_sources(tmp_path):
-    f1, f2, f3, f4 = tmp_path/"a.html", tmp_path/"b.xml", tmp_path/"c.yaml", tmp_path/"d.txt"
+    f1, f2, f3, f4 = (
+        tmp_path / "a.html",
+        tmp_path / "b.xml",
+        tmp_path / "c.yaml",
+        tmp_path / "d.txt",
+    )
     f1.write_text("a", encoding="utf-8")
     f2.write_text("b", encoding="utf-8")
     f3.write_text("c", encoding="utf-8")
     f4.write_text("d", encoding="utf-8")
-    
+
     sources = [
         make_source("f1", f1.as_uri()),
         make_source("f2", f2.as_uri()),
         make_source("f3", f3.as_uri()),
         make_source("f4", f4.as_uri()),
     ]
-    
+
     # Use FakeClock instead of lambda: None
     fetcher = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), allow_file=True)
     res1 = fetcher.fetch_all(sources, {})
@@ -234,22 +239,23 @@ def test_fetch_all_file_sources(tmp_path):
     assert len(res2.documents) == 0
     assert len(res2.checkpoints) == 4
 
+
 def test_failing_source_isolated_in_fetch_all():
     s1 = make_source("good", "http://ok.com")
     s2 = make_source("bad", "http://bad.com")
-    
-    def handle(req): 
+
+    def handle(req):
         # Explicitly fail the 'bad' source to trigger the isolation logic
         if "bad.com" in str(req.url):
             return httpx.Response(500)
         return httpx.Response(200, text="ok")
-        
+
     client = httpx.Client(transport=httpx.MockTransport(handle))
-    
+
     # Use FakeClock instead of lambda: None
     fetcher = HttpFetcher(FakeClock(), FakeSleep(FakeClock()), client=client)
     res = fetcher.fetch_all([s1, s2], {})
-    
+
     assert len(res.documents) == 1
     assert "good" in res.checkpoints
     assert "bad" in res.failures

@@ -1,6 +1,6 @@
 aliases:
   - ontology_id: "acme:chat:param:max_tokens"
-    sdk_symbols: ["acme_sdk.client.max_tokens"]
+    sdk_symbols: ["acme_sdk.client.AcmeClient.chat", "max_tokens"]
     rest_paths: ["/v1/chat"]
   - ontology_id: "acme:chat:param:max_output_tokens"
     rest_paths: ["/v1/chat"]
@@ -10,3 +10,6 @@ aliases:
     model_aliases: ["acme-pro-2026-06"]
   - ontology_id: "acme:chat:endpoint:chat"
     rest_paths: ["/v1/chat"]
+    hostnames: ["api.acme.com", "api.acme.test"]
+  - ontology_id: "acme:sdk:lib:core"
+    manifest_deps: ["acme_sdk", "acme-sdk"]

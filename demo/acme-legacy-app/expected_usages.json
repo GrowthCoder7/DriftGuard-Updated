@@ -1,3 +1,4 @@
 [
-  {"surface_ref": "model:acme-pro-2025-01", "file": "main.py", "line": 4}
+  {"surface_ref": "acme:models:model:acme-pro-2025-01", "file": "main.py", "line": 4},
+  {"surface_ref": "acme:chat:endpoint:chat", "file": "main.py", "line": 4}
 ]

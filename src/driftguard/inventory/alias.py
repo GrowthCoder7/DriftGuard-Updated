@@ -2,40 +2,28 @@ from pathlib import Path
 
 import yaml
 
+from driftguard.models.support import AliasEntry, AliasMap
 
-def load_alias_map(registry_path: Path) -> dict[str, dict[str, str]]:
-    """Loads YAML aliases into O(1) lookup dictionaries for the indexer."""
-    lookups: dict[str, dict[str, str]] = {
-        "models": {},
-        "kwargs": {},
-        "imports": {},
-        "hostnames": {},
-        "manifest_deps": {},
-    }
 
+def load_alias_map(registry_path: Path) -> AliasMap:
+    """Loads YAML aliases strictly into an AliasMap."""
+    entries = []
     if not registry_path.exists():
-        return lookups
+        return AliasMap(entries=entries)
 
     for yaml_file in registry_path.glob("**/*.yaml"):
         with open(yaml_file, encoding="utf-8") as f:
             data = yaml.safe_load(f)
-            for alias in data.get("aliases", []):
-                oid = alias["ontology_id"]
+            for alias_data in data.get("aliases", []):
+                entries.append(
+                    AliasEntry(
+                        ontology_id=alias_data["ontology_id"],
+                        sdk_symbols=alias_data.get("sdk_symbols", []),
+                        rest_paths=alias_data.get("rest_paths", []),
+                        hostnames=alias_data.get("hostnames", []),
+                        model_aliases=alias_data.get("model_aliases", []),
+                        manifest_deps=alias_data.get("manifest_deps", []),
+                    )
+                )
 
-                for m in alias.get("model_aliases", []):
-                    lookups["models"][m] = oid
-
-                for s in alias.get("sdk_symbols", []):
-                    parts = s.split(".")
-                    lookups["kwargs"][parts[-1]] = oid
-                    if len(parts) > 1:
-                        # Extract module import paths (e.g., acme_sdk.client)
-                        lookups["imports"][".".join(parts[:-1])] = oid
-
-                for h in alias.get("hostnames", []):
-                    lookups["hostnames"][h] = oid
-
-                for md in alias.get("manifest_deps", []):
-                    lookups["manifest_deps"][md] = oid
-
-    return lookups
+    return AliasMap(entries=entries)

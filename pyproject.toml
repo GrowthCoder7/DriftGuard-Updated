@@ -44,3 +44,6 @@ strict = true
 
 [tool.ruff.lint.per-file-ignores]
 "src/driftguard/inventory/*" = ["BLE001"]
+
+[tool.coverage.run]
+source = ["src/driftguard/models", "src/driftguard/fetch", "src/driftguard/inventory"]
