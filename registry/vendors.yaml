@@ -1,0 +1,23 @@
+vendors:
+  acme:
+    sources:
+      - url: "file://tests/fixtures/acme/changelog.html"
+        type: "html"
+        cadence: "daily"
+        parser_hints: {}
+        politeness: {min_interval_seconds: 1, user_agent: "driftguard-agent"}
+      - url: "file://tests/fixtures/acme/deprecations.html"
+        type: "html_table"
+        cadence: "daily"
+        parser_hints: {}
+        politeness: {min_interval_seconds: 1, user_agent: "driftguard-agent"}
+      - url: "file://tests/fixtures/acme/feed.xml"
+        type: "rss"
+        cadence: "hourly"
+        parser_hints: {}
+        politeness: {min_interval_seconds: 1, user_agent: "driftguard-agent"}
+      - url: "file://tests/fixtures/acme/openapi_v1.yaml"
+        type: "openapi"
+        cadence: "daily"
+        parser_hints: {}
+        politeness: {min_interval_seconds: 1, user_agent: "driftguard-agent"}
