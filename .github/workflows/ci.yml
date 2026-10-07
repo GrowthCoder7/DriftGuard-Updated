@@ -1,0 +1,20 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install uv
+      - run: uv pip install -e ".[dev]" --system
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: mypy src/driftguard/models src/driftguard/protocols.py
+      - run: pytest
+      - run: python scripts/export_schemas.py && git diff --exit-code schemas/
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+      - run: pip install pip-audit && pip-audit
