@@ -1,0 +1,9 @@
+SYNTHETIC FIXTURE
+max_tokens
+max_output_tokens
+acme-pro-2025-01
+acme-pro-2026-06
+user_id
+temperature
+top_k
+chat

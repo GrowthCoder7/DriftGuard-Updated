@@ -1,0 +1,21 @@
+# SYNTHETIC FIXTURE
+openapi: 3.0.0
+info:
+  title: Acme API
+  version: "v2"
+paths:
+  /v1/chat:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                max_output_tokens:
+                  type: integer
+                format:
+                  type: string
+                  enum: [A, B]
+                new_field:
+                  type: string
