@@ -18,3 +18,13 @@ jobs:
       - name: Gitleaks
         uses: gitleaks/gitleaks-action@v2
       - run: pip install pip-audit && pip-audit
+      - name: Type Check (Mypy Strict)
+        run: uv run mypy --strict src/driftguard/split src/driftguard/impact
+
+      - name: Run Pytest
+        env:
+          PYTHONPATH: src
+        run: uv run pytest
+
+      - name: Enforce Core Coverage
+        run: uv run python scripts_dev/check_core_coverage.py

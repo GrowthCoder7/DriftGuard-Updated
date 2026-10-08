@@ -1,3 +1,5 @@
+import subprocess
+import sys
 from datetime import UTC, datetime
 
 import pytest
@@ -137,10 +139,6 @@ def test_verdict_limitations() -> None:
     # V4 doesn't require limitations
     Verdict(**base, tier=VerdictTier.V4, limitations="")  # type: ignore
     # (Append these to your existing tests/unit/test_models.py)
-
-
-import subprocess
-import sys
 
 
 def test_contract_before_after_accept_null(
