@@ -42,7 +42,8 @@ warn_return_any = true
 warn_unused_configs = true
 
 [[tool.mypy.overrides]]
-module = ["driftguard.models.*", "driftguard.protocols"]
+module = ["driftguard.models.*", "driftguard.protocols","driftguard.split.*",
+    "driftguard.impact.*"]
 strict = true
 
 [tool.ruff.lint.per-file-ignores]

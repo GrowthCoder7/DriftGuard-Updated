@@ -1,3 +1,3 @@
-from .splitter import make_splitter, diff_entries, DiffResult
+from .splitter import DiffResult, diff_entries, make_splitter
 
-__all__ = ["make_splitter", "diff_entries", "DiffResult"]
+__all__ = ["DiffResult", "diff_entries", "make_splitter"]

@@ -106,7 +106,8 @@ def test_indexer_all_named_features(temp_repo, dummy_alias_map):
         ]
         for r in records
     ), (
-        f"UsageRecord field contains unexpected source text: {[r.symbol for r in records]}"
+        f"UsageRecord field contains unexpected source text: "
+        f"{[r.symbol for r in records]}"
     )
 
     assert any(

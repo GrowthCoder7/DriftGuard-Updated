@@ -44,20 +44,35 @@ def parse_date(date_str: str) -> date | None:
 class HtmlSplitter:
     def __init__(self, source: Source):
         self.source = source
-        self.selector = self.source.parser_hints.get("entry_selector", '[id^="entry-"], article')
+        self.selector = self.source.parser_hints.get(
+            "entry_selector", '[id^="entry-"], article'
+        )
+        self.title_selector = self.source.parser_hints.get(
+            "title_selector", "h1, h2, h3, h4"
+        )
 
     def split(self, doc: RawDocument) -> list[Entry]:
         tree = LexborHTMLParser(doc.text)
-        entries_dict = {}  # Use a dict to deduplicate nodes matched multiple times by comma selectors
-        
+        # Use a dict to deduplicate nodes matched multiple times by comma selectors
+        entries_dict = {}
+
         for node in tree.css(self.selector):
-            norm_text = normalize_text(node.text())
+            norm_text = normalize_text(node.text(separator=" "))
             if not norm_text:
                 continue
 
             node_id = node.attributes.get("id")
             c_hash = compute_hash(norm_text)
-            entry_id = f"{self.source.id}#{node_id}" if node_id else f"{self.source.id}#{c_hash[:12]}"
+            entry_id = (
+                f"{self.source.id}#{node_id}"
+                if node_id
+                else f"{self.source.id}#{c_hash[:12]}"
+            )
+
+            title = None
+            title_node = node.css_first(self.title_selector)
+            if title_node:
+                title = normalize_text(title_node.text(separator=" "))
 
             pub_date = None
             time_node = node.css_first("time[datetime]")
@@ -71,10 +86,15 @@ class HtmlSplitter:
                     pub_date = parse_date(match.group(1))
 
             entries_dict[entry_id] = Entry(
-                id=entry_id, source_id=self.source.id, doc_url=doc.url,
-                title=None, published_at=pub_date, text=norm_text, content_hash=c_hash
+                id=entry_id,
+                source_id=self.source.id,
+                doc_url=doc.url,
+                title=title,
+                published_at=pub_date,
+                text=norm_text,
+                content_hash=c_hash,
             )
-            
+
         return list(entries_dict.values())
 
 
@@ -88,18 +108,20 @@ class HtmlTableSplitter:
         table = tree.css_first("table")
         if not table:
             return []
-        
+
         rows = table.css("tr")
         if len(rows) < 2:
             return []
 
-        headers = [normalize_text(th.text()) for th in rows[0].css("th, td")]
+        headers = [
+            normalize_text(th.text(separator=" ")) for th in rows[0].css("th, td")
+        ]
 
         for row in rows[1:]:
-            cells = [normalize_text(td.text()) for td in row.css("td, th")]
+            cells = [normalize_text(td.text(separator=" ")) for td in row.css("td, th")]
             if not cells or not cells[0]:
                 continue
-            
+
             slug = re.sub(r"[^a-z0-9]+", "-", cells[0].lower()).strip("-")
             entry_id = f"{self.source.id}#row-{slug}"
 
@@ -110,10 +132,17 @@ class HtmlTableSplitter:
             norm_text = normalize_text(" | ".join(paired))
             c_hash = compute_hash(norm_text)
 
-            entries.append(Entry(
-                id=entry_id, source_id=self.source.id, doc_url=doc.url,
-                title=None, published_at=None, text=norm_text, content_hash=c_hash
-            ))
+            entries.append(
+                Entry(
+                    id=entry_id,
+                    source_id=self.source.id,
+                    doc_url=doc.url,
+                    title=None,
+                    published_at=None,
+                    text=norm_text,
+                    content_hash=c_hash,
+                )
+            )
         return entries
 
 
@@ -127,45 +156,60 @@ class RssSplitter:
         for item in feed.entries:
             title = getattr(item, "title", "")
             desc_raw = getattr(item, "description", getattr(item, "summary", ""))
-            desc = LexborHTMLParser(desc_raw).text() if desc_raw else ""
-            
+            desc = LexborHTMLParser(desc_raw).text(separator=" ") if desc_raw else ""
+
             norm_text = normalize_text(f"{title}. {desc}")
             c_hash = compute_hash(norm_text)
 
             guid = getattr(item, "id", getattr(item, "guid", None))
             link = getattr(item, "link", None)
-            
+
             pub_parsed = getattr(item, "published_parsed", None)
             pub_date = None
             if pub_parsed:
                 try:
-                    pub_date = date(pub_parsed.tm_year, pub_parsed.tm_mon, pub_parsed.tm_mday)
+                    pub_date = date(
+                        pub_parsed.tm_year,
+                        pub_parsed.tm_mon,
+                        pub_parsed.tm_mday,
+                    )
                 except ValueError:
                     pass
 
             raw_date_str = getattr(item, "published", getattr(item, "updated", ""))
             eid = guid or link or compute_hash(f"{title}{raw_date_str}")
 
-            entries.append(Entry(
-                id=eid, source_id=self.source.id, doc_url=doc.url,
-                title=title if title else None, published_at=pub_date, 
-                text=norm_text, content_hash=c_hash
-            ))
+            entries.append(
+                Entry(
+                    id=eid,
+                    source_id=self.source.id,
+                    doc_url=doc.url,
+                    title=title if title else None,
+                    published_at=pub_date,
+                    text=norm_text,
+                    content_hash=c_hash,
+                )
+            )
         return entries
 
 
 class OpenApiSplitter:
     def __init__(self, source: Source):
         pass
+
     def split(self, doc: RawDocument) -> list[Entry]:
         raise NotImplementedError("handled by deterministic extractor")
 
 
 def make_splitter(source: Source) -> EntrySplitter:
-    if source.type == "html": return HtmlSplitter(source)
-    if source.type == "html_table": return HtmlTableSplitter(source)
-    if source.type == "rss": return RssSplitter(source)
-    if source.type == "openapi": return OpenApiSplitter(source)
+    if source.type == "html":
+        return HtmlSplitter(source)
+    if source.type == "html_table":
+        return HtmlTableSplitter(source)
+    if source.type == "rss":
+        return RssSplitter(source)
+    if source.type == "openapi":
+        return OpenApiSplitter(source)
     raise ValueError(f"Unsupported source type: {source.type}")
 
 
