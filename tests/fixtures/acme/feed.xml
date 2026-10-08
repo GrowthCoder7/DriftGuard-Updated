@@ -3,20 +3,12 @@
   <channel>
     <title>Acme API Feed</title>
     <item>
-      <title>Parameter Rename</title>
-      <description>On 2026-11-01, we will rename max_tokens to max_output_tokens for API versions 2025-06 and later.</description>
+      <title>Parameter Standardization: max_tokens</title>
+      <description>Starting November 1st, max_tokens is becoming max_output_tokens. Update your code.</description>
     </item>
     <item>
-      <title>Model Deprecation</title>
-      <description>Model acme-pro-2025-01 will be retired on 2026-12-15. Please migrate to acme-pro-2026-06.</description>
-    </item>
-    <item>
-      <title>Performance</title>
-      <description>We decreased the default temperature for all models to improve response determinism.</description>
-    </item>
-    <item>
-      <title>New Feature</title>
-      <description>Added the optional top_k parameter to the chat endpoint to filter sampling.</description>
+      <title>Saying goodbye to acme-pro-2025-01</title>
+      <description>The acme-pro-2025-01 model is going offline by mid-December. Transition to acme-pro-2026-06 now.</description>
     </item>
   </channel>
 </rss>
