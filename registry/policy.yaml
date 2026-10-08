@@ -1,0 +1,17 @@
+escalation_window_days: 14
+repo_criticality:
+  acme-demo-app: high
+  acme-legacy-app: medium
+severity_rules:
+  - enforcement: hard
+    days_until: 30
+    severity: critical
+  - enforcement: hard
+    days_until: 90
+    severity: high
+  - enforcement: soft
+    days_until: 30
+    severity: high
+  - enforcement: unknown
+    days_until: 30
+    severity: medium
